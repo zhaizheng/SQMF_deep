@@ -72,7 +72,7 @@ noise_function = [sample_lpp_noise] * 6 #+ [sample_l2_noise]
 
 Data = []
 base = sample_on_sphere(n=300, d=3, seed=None)
-noisy = base + np.random.normal(0, 0.2, base.shape)
+noisy = base + np.random.normal(0, 0.1, base.shape)
 
 All_result = []
 for s in range(6):
@@ -98,7 +98,7 @@ for s in range(6):
     # Normalize and calculate the norm
     error = 0
     for i in range(20):
-        error += (np.linalg.norm(Proj_X[i]-base[:,i])**2)/20
+        error += (np.linalg.norm(Proj_X[i].reshape(-1,1)-base[:,i].reshape(-1,1))**2)/20
     #Result_norm = np.sum([np.linalg.norm(r - base)**2 for r in Proj_X])/Result.shape[1]
     All_result.append(error)
     print(f"Result norm: {error}, P_value:{P_values[s]}")
