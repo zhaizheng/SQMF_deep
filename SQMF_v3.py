@@ -327,6 +327,7 @@ def quadratic_manifold_factorization(
     mode: str = "l1",
     armijo_c: float = 1e-2,
     bt_max: int = 20,
+    set_Theta_zero: bool = False,
     **kwargs
 ):
     """
@@ -421,26 +422,29 @@ def quadratic_manifold_factorization(
         # ========================================================
         # Update Theta with backtracking
         # ========================================================
-        grad_Theta = np.zeros_like(Theta)
-        Vt_g = [V.T @ g_list[i] for i in range(n)]  # each (s,)
+        if set_Theta_zero:
+            Theta = np.zeros_like(Theta)
+        else:
+            grad_Theta = np.zeros_like(Theta)
+            Vt_g = [V.T @ g_list[i] for i in range(n)]  # each (s,)
 
-        for i in range(n):
-            grad_Theta += np.outer(vech_list[i], Vt_g[i])  # (m,s)
+            for i in range(n):
+                grad_Theta += np.outer(vech_list[i], Vt_g[i])  # (m,s)
 
-        desc_Theta = -grad_Theta
-        obj_base = objective(X, taus, c, Q, Theta, d, s, loss_func)
-        desc_norm2 = float(np.linalg.norm(desc_Theta) ** 2)
+            desc_Theta = -grad_Theta
+            obj_base = objective(X, taus, c, Q, Theta, d, s, loss_func)
+            desc_norm2 = float(np.linalg.norm(desc_Theta) ** 2)
 
-        eta = eta_Theta
-        Theta_candidate = Theta
-        for _ in range(bt_max):
-            Theta_try = Theta + eta * desc_Theta
-            obj_try = objective(X, taus, c, Q, Theta_try, d, s, loss_func)
-            if obj_try <= obj_base - armijo_c * eta * desc_norm2:
-                Theta_candidate = Theta_try
-                break
-            eta *= 0.5
-        Theta = Theta_candidate
+            eta = eta_Theta
+            Theta_candidate = Theta
+            for _ in range(bt_max):
+                Theta_try = Theta + eta * desc_Theta
+                obj_try = objective(X, taus, c, Q, Theta_try, d, s, loss_func)
+                if obj_try <= obj_base - armijo_c * eta * desc_norm2:
+                    Theta_candidate = Theta_try
+                    break
+                eta *= 0.5
+            Theta = Theta_candidate
         
         # ========================================================
         # Update c with backtracking
