@@ -95,9 +95,9 @@ def run_experiment():
     M_fit_result = []
     Sph_result = []
     Moving_LS = []
-    for t in range(5):  # Vary noise levels
+    for t in range(8):  # Vary noise levels
         result_noise_level_truth, result_noise_level_false = [], []
-        noisy = base + np.random.normal(0, 0.05 * t, base.shape)
+        noisy = base + np.random.normal(0, 0.03 * t, base.shape)
 
         Sph,_,_,_ = spherelet(noisy[:,:20], noisy, k=30, d=2)
         Sph_result.append(Sph)
@@ -135,7 +135,7 @@ def run_experiment():
 
         #All_result_false.append(result_noise_level_false)
 
-    with open('data_v2.pkl', 'wb') as file:
+    with open('data_v3.pkl', 'wb') as file:
         pickle.dump([All_result_truth, M_fit_result], file)
 
 
@@ -144,25 +144,25 @@ if __name__ == '__main__':
     if True:
         run_experiment()
     else:
-        xl = [r'$p=1.00$', r'$1.25$', r'$1.50$', r'$1.75$', r'$2.00$', r'$\ell_2$']
-        with open('data_v2.pkl', 'rb') as file:
+        xl = [r'$p=1.00$', r'$1.25$', r'$1.50$', r'$1.75$', r'$2.00$', r'$\ell_2$'] *2 + ['sph','mfit','mls']
+        with open('data_v3.pkl', 'rb') as file:
             data = pickle.load(file)
 
             # Create the plot
-            fig, axe = plt.subplots(2, 2, figsize=(15, 8))
-            data_print = np.zeros((4, 6))
+            fig, axe = plt.subplots(3, 3, figsize=(15, 8))
+            data_print = np.zeros((4, 15))
 
-            for i in range(4):     
+            for i in range(8):     
                 To_ana, La = [], []
-                ax = axe[i // 2, i % 2]
-                for k in range(6):
-                    to_analysis = np.array(data[1][i + 1][k])
+                ax = axe[i // 3, i % 3]
+                for k in range(15):
+                    to_analysis = np.array(data[0][i + 1][k])
                     data_print[i, k] = to_analysis.mean()
                     To_ana.append(to_analysis)
                     La.append(k + 1)
 
                 ax.boxplot(To_ana, positions=La, widths=0.6, showfliers=False)
-                ax.set_xticks(np.arange(1, 7))
+                ax.set_xticks(np.arange(1, 16))
                 ax.set_xticklabels(xl, fontsize=16)
                 ax.set_title(r'$\sigma=' + f'{0.05 * (i + 1):.2g}$', fontsize=16)
                 ax.set_xlabel('Different $\ell_p^p$ Values', fontsize=16)
