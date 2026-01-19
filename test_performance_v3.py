@@ -7,6 +7,7 @@ import os
 import pickle
 from linear_mfit import *
 from Spherelet import *
+from MovingLS import *
 
 mpl.rcParams['text.usetex'] = True
 os.makedirs("modified/figures", exist_ok=True)
@@ -57,7 +58,7 @@ def k_nearest_on_sphere(X, x0, k):
     idx = np.argsort(dists)[:k]
     return X[:, idx], idx, dists[idx]
 
-def refine_via_qmf(noisy, N=20, mode='lp_p', p_value=1, neig=30):
+def refine_via_qmf(noisy, N=20, mode='lp_p', p_value=1, neig=30, set_Theta_zero = False):
     """Refine projections via quadratic manifold factorization."""
     Proj_X = []
     for i in range(N):
@@ -66,7 +67,8 @@ def refine_via_qmf(noisy, N=20, mode='lp_p', p_value=1, neig=30):
         Q, Theta, c, taus, err, step = quadratic_manifold_factorization(
             Data_i, d=2, s=1,
             eta_Q=1e-1, eta_Theta=1e-1, eta_c=1e-1, eta_tau=1e-1,
-            T=1000, tol=1e-7, mode=mode, delta=0.1, p=p_value
+            T=1000, tol=1e-7, mode=mode, delta=0.1, p=p_value, 
+            set_Theta_zero=set_Theta_zero
         )
         proj, x = optimize_tau(x_i=noisy[:, [i]], c=c, Q=Q, Theta=Theta, d=2, s=1, eta_tau=1e-1, mode=mode, p=p_value)
         Proj_X.append(x)
@@ -92,6 +94,7 @@ def run_experiment():
     All_result_truth, All_result_false = [], []
     M_fit_result = []
     Sph_result = []
+    Moving_LS = []
     for t in range(5):  # Vary noise levels
         result_noise_level_truth, result_noise_level_false = [], []
         noisy = base + np.random.normal(0, 0.05 * t, base.shape)
@@ -101,7 +104,9 @@ def run_experiment():
 
         mfit_result, _ = linear_mfit(noisy, noisy[:,:20], d=2, k=30)
         M_fit_result.append(mfit_result)
-        print(mfit_result)
+
+        MLS_result, _,_ = moving_ls(noisy, noisy[:,:20], neig=30, d=2)
+        Moving_LS.append(MLS_result)
 
         for s in range(6):  # Iterate over modes (lp_p and l2)
             Proj_X = refine_via_qmf(noisy, N=20, mode=types[s], p_value=P_values[s], neig=30)
@@ -110,7 +115,24 @@ def run_experiment():
             result_noise_level_false.append(error1)
             print(f"Result norm: {error}, P_value:{P_values[s]}")
 
+        for s in range(6):  # Iterate over modes (lp_p and l2)
+            Proj_X = refine_via_qmf(noisy, N=20, mode=types[s], p_value=P_values[s], neig=30, set_Theta_zero=True)
+            error, error1 = compute_error_per_sample(Proj_X, base, N=20)
+            result_noise_level_truth.append(error)
+            result_noise_level_false.append(error1)
+            print(f"Result norm: {error}, P_value:{P_values[s]}")
+
+        e1,_ = compute_error_per_sample(Sph, base, N=20)
+        result_noise_level_truth.append(e1)
+
+        e2,_ = compute_error_per_sample(mfit_result, base, N=20)
+        result_noise_level_truth.append(e2)
+
+        e3,_ = compute_error_per_sample(MLS_result, base, N=20)
+        result_noise_level_truth.append(e3)
+
         All_result_truth.append(result_noise_level_truth)
+
         #All_result_false.append(result_noise_level_false)
 
     with open('data_v2.pkl', 'wb') as file:
