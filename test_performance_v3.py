@@ -141,31 +141,31 @@ def run_experiment():
 
 # ---------------- Experiment setup ----------------
 if __name__ == '__main__':
-    if True:
+    if False:
         run_experiment()
     else:
-        xl = [r'$p=1.00$', r'$1.25$', r'$1.50$', r'$1.75$', r'$2.00$', r'$\ell_2$'] *2 + ['sph','mfit','mls']
+        xl = [r'$1.00$', r'$1.25$', r'$1.50$', r'$1.75$', r'$2.00$', r'$\ell_2$'] *2 + ['sph','mfit','mls']
         with open('data_v3.pkl', 'rb') as file:
             data = pickle.load(file)
 
             # Create the plot
-            fig, axe = plt.subplots(3, 3, figsize=(15, 8))
-            data_print = np.zeros((4, 15))
+            fig, axe = plt.subplots(2, 3, figsize=(15, 8))
+            data_print = np.zeros((8, 15))
 
-            for i in range(8):     
+            for i in range(6):     
                 To_ana, La = [], []
                 ax = axe[i // 3, i % 3]
                 for k in range(15):
-                    to_analysis = np.array(data[0][i + 1][k])
+                    to_analysis = np.array(data[0][i+1][k])
                     data_print[i, k] = to_analysis.mean()
                     To_ana.append(to_analysis)
                     La.append(k + 1)
 
                 ax.boxplot(To_ana, positions=La, widths=0.6, showfliers=False)
                 ax.set_xticks(np.arange(1, 16))
-                ax.set_xticklabels(xl, fontsize=16)
-                ax.set_title(r'$\sigma=' + f'{0.05 * (i + 1):.2g}$', fontsize=16)
-                ax.set_xlabel('Different $\ell_p^p$ Values', fontsize=16)
+                ax.set_xticklabels(xl, fontsize=6)
+                ax.set_title(r'$\sigma=' + f'{0.03 * (i + 1):.2g}$', fontsize=16)
+                #ax.set_xlabel('Different $\ell_p^p$ Values', fontsize=16)
                 ax.set_ylabel('Error', fontsize=16)
 
             plt.tight_layout()
