@@ -33,12 +33,13 @@ def spherelet(DATA_TOBE, Data, k, d):
         
         # Compute spherelet center and radius
         c, r = compute_spherelet_center(Y)
-      
+        
         # Project data point onto spherelet subspace
-        PU = U @ U.T @ (DATA_TOBE[:, i:i+1] - c.reshape(-1,1))
-        res = c.reshape(-1,1) + r * PU / (np.linalg.norm(PU) + np.finfo(float).eps)
-        #if np.isnan(res[0]):
-        #    raise ValueError("Result is NaN, check the calculations.")
+        PU = U @ U.T @ (DATA_TOBE[:, i:i+1] - c)
+        res = c + r * PU / (np.linalg.norm(PU) + np.finfo(float).eps)
+
+        if np.isnan(res[0]):
+            raise ValueError("Result is NaN, check the calculations.")
 
         # Store results
         Output[:, i] = res.flatten()

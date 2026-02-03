@@ -40,13 +40,13 @@ def moving_ls(Data, inputs, neig, d, max_iter=300, tol=1e-4):
 
     # Pack results into dictionary
     re = {
-        "Q": np.hstack(Q_all),
-        "X": np.hstack(Result),
+        "Q": np.vstack(Q_all),
+        "X": np.vstack(Result),
         "U": U,
         "T": T_list
     }
 
-    return np.hstack(Result), T_list, re
+    return np.vstack(Result), T_list, re
 
 
 def find_origin(x, Data, h, d, max_iter=300, tol=1e-4):
